@@ -4,7 +4,7 @@ import (
 	"bufio"
 	"os"
 
-	"github.com/BanAnna0970/frm"
+	"github.com/BanAnna0970/frm/logger"
 )
 
 func ReadData(f *os.File) ([]string, error) {

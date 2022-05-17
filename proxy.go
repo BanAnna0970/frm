@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/BanAnna0970/frm"
+	"github.com/BanAnna0970/frm/logger"
 )
 
 var pMan manager

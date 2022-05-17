@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/BanAnna0970/fm/logger"
-	"github.com/BanAnna0970/fm/proxy"
+	"github.com/BanAnna0970/frm/logger"
+	"github.com/BanAnna0970/frm/proxy"
 	"github.com/valyala/fasthttp"
 	"github.com/valyala/fasthttp/fasthttpproxy"
 )
