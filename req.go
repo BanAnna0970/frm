@@ -6,8 +6,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/BanAnna0970/frm/logger"
-	"github.com/BanAnna0970/frm/proxy"
 	"github.com/valyala/fasthttp"
 	"github.com/valyala/fasthttp/fasthttpproxy"
 )
@@ -19,7 +17,7 @@ type FastHttp struct {
 	Timeout        time.Duration
 	ExpectedStatus int
 	MaxRetries     int
-	Proxy          *proxy.Proxy
+	Proxy          *Proxy
 }
 
 type NetHttp struct {
@@ -29,7 +27,7 @@ type NetHttp struct {
 	Timeout        time.Duration
 	ExpectedStatus int
 	MaxRetries     int
-	Proxy          *proxy.Proxy
+	Proxy          *Proxy
 }
 
 type FastData struct {
@@ -39,7 +37,7 @@ type FastData struct {
 	Method  string
 	Payload string
 	Timeout int
-	Proxy   *proxy.Proxy
+	Proxy   *Proxy
 }
 
 type NetData struct {
@@ -49,7 +47,7 @@ type NetData struct {
 	Method  string
 	Payload string
 	Timeout int
-	Proxy   *proxy.Proxy
+	Proxy   *Proxy
 }
 
 type Builder interface {
@@ -65,18 +63,18 @@ func (fh *FastHttp) DoRequest() (err error) {
 	for i := 0; i < fh.MaxRetries; i++ {
 		if fh.Proxy.BansQuantity > fh.MaxRetries*10 {
 			err = fmt.Errorf("too many requeststoo many bad requests with this proxy: %v", fh.Proxy.FastFmt)
-			logger.Logger.Error().Err(err)
+			Logger.Error().Err(err)
 			return err
 		}
 		fh.Client.Dial = fasthttpproxy.FasthttpHTTPDialer(fh.Proxy.FastFmt)
 		err = fh.Client.DoTimeout(fh.Request, fh.Response, fh.Timeout)
 		if err != nil {
-			logger.Logger.Warn().Err(err).Str("req_data", fh.Request.String()).Str("proxy", fh.Proxy.FastFmt)
+			Logger.Warn().Err(err).Str("req_data", fh.Request.String()).Str("proxy", fh.Proxy.FastFmt)
 			continue
 		}
 		if fh.Response.StatusCode() != fh.ExpectedStatus {
 			fh.Proxy.BansQuantity++
-			logger.Logger.Warn().Err(errors.New("resp status code != expected status code")).Str("req_data", fh.Request.String()).Str("resp_data", fh.Response.String()).Str("proxy", fh.Proxy.FastFmt)
+			Logger.Warn().Err(errors.New("resp status code != expected status code")).Str("req_data", fh.Request.String()).Str("resp_data", fh.Response.String()).Str("proxy", fh.Proxy.FastFmt)
 			continue
 		}
 		return nil
@@ -91,7 +89,7 @@ func (fh *FastHttp) DoRequest() (err error) {
 // 	for i := 0; i < nh.MaxRetries; i++ {
 // 		nh.Response, err = nh.Client.Do(nh.Request)
 // 		if err != nil {
-// 			logger.Logger.Warn().Err(err).Str("data", nh.Request.String())
+// 			Logger.Warn().Err(err).Str("data", nh.Request.String())
 // 			continue
 // 		}
 // 		defer nh.Response.Body.Close()

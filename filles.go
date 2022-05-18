@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"os"
 
-	"github.com/BanAnna0970/frm/logger"
 )
 
 func ReadData(f *os.File) ([]string, error) {
@@ -16,7 +15,7 @@ func ReadData(f *os.File) ([]string, error) {
 	}
 
 	if err := scanner.Err(); err != nil {
-		logger.Logger.Fatal().Err(err)
+		Logger.Fatal().Err(err)
 		return []string{}, err
 	}
 
@@ -25,7 +24,7 @@ func ReadData(f *os.File) ([]string, error) {
 
 func WriteData(f *os.File, data string) error {
 	if _, err := f.WriteString((data + "\n")); err != nil {
-		logger.Logger.Fatal().Err(err)
+		Logger.Fatal().Err(err)
 		return err
 	}
 	return nil

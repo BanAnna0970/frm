@@ -11,7 +11,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/BanAnna0970/frm/logger"
 )
 
 var pMan manager
@@ -95,7 +94,7 @@ func ping(proxy *Proxy, urll string) {
 	now := time.Now()
 	proxyUrl, err := url.Parse(proxy.NetFmt)
 	if err != nil {
-		logger.Logger.Error().Err(err)
+		Logger.Error().Err(err)
 		return
 	}
 	transport.Proxy = http.ProxyURL(proxyUrl)
