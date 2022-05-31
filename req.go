@@ -42,7 +42,6 @@ type FastData struct {
 	ExpectedStatus int
 	Payload        string
 	Timeout        int
-	Proxy          *Proxy
 }
 
 type NetData struct {
@@ -53,7 +52,6 @@ type NetData struct {
 	ExpectedStatus int
 	Payload        string
 	Timeout        int
-	Proxy          *Proxy
 }
 
 type Builder interface {
