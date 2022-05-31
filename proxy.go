@@ -2,25 +2,11 @@ package frm
 
 import (
 	"bufio"
-	"fmt"
 	"log"
-	"net/http"
-	"net/url"
 	"os"
 	"regexp"
 	"strings"
-	"time"
-
 )
-
-var pMan manager
-
-type manager struct {
-	total     int
-	goodProxy int
-	badProxy  int
-	ping      time.Duration
-}
 
 type Proxy struct {
 	NetFmt       string
@@ -55,57 +41,5 @@ func GetProxies(forSite string) []*Proxy {
 		log.Fatal(err)
 	}
 
-	pMan.total = len(Proxies)
-	for _, p := range Proxies {
-		go ping(p, forSite)
-	}
-
-	time.Sleep(5 * time.Second)
-
-	if float32(pMan.goodProxy) < float32(pMan.total)*0.9 {
-		log.Fatal(`< 90% of good proxies`)
-	}
-
-	fmt.Printf("Average ping: %v\n\nDo you want to continue?\nY/n\n", pMan.ping/time.Duration(pMan.goodProxy))
-
-	var shouldContinue string
-
-	fmt.Scanln(&shouldContinue)
-
-	if strings.ToUpper(shouldContinue) != "Y" {
-		log.Fatal("Bad ping")
-	}
-
 	return Proxies
-}
-
-func ping(proxy *Proxy, urll string) {
-	transport := &http.Transport{}
-
-	var client = &http.Client{
-		Timeout:   2 * time.Second,
-		Transport: transport,
-	}
-
-	req, err := http.NewRequest("HEAD", urll, nil)
-	if err != nil {
-		return
-	}
-	now := time.Now()
-	proxyUrl, err := url.Parse(proxy.NetFmt)
-	if err != nil {
-		Logger.Error().Err(err)
-		return
-	}
-	transport.Proxy = http.ProxyURL(proxyUrl)
-	resp, err := client.Do(req)
-	if err != nil {
-		pMan.badProxy++
-		fmt.Printf("[%v] - timeout\n", proxy.NetFmt)
-		return
-	}
-	resp.Body.Close()
-	pMan.goodProxy++
-	pMan.ping = +time.Since(now)
-	fmt.Printf("[%v] - %v\n", proxy.NetFmt, time.Since(now))
 }

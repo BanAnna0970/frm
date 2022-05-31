@@ -18,7 +18,7 @@ const (
 
 // Console = 0
 // File    = 1
-// Both    = 2
+// Console + File = 2
 func InitLogger(output int) error {
 	switch output {
 	case Console:

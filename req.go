@@ -10,6 +10,10 @@ import (
 	"github.com/valyala/fasthttp/fasthttpproxy"
 )
 
+var(
+	errIncorrectStatus = errors.New("resp status code != expected status code")
+)
+
 type FastHttp struct {
 	Client         *fasthttp.Client
 	Request        *fasthttp.Request
@@ -31,23 +35,25 @@ type NetHttp struct {
 }
 
 type FastData struct {
-	Client  *fasthttp.Client
-	Headers map[string]string
-	URL     string
-	Method  string
-	Payload string
-	Timeout int
-	Proxy   *Proxy
+	Client         *fasthttp.Client
+	Headers        map[string]string
+	URL            string
+	Method         string
+	ExpectedStatus int
+	Payload        string
+	Timeout        int
+	Proxy          *Proxy
 }
 
 type NetData struct {
-	Client  *http.Client
-	Headers map[string]string
-	URL     string
-	Method  string
-	Payload string
-	Timeout int
-	Proxy   *Proxy
+	Client         *http.Client
+	Headers        map[string]string
+	URL            string
+	Method         string
+	ExpectedStatus int
+	Payload        string
+	Timeout        int
+	Proxy          *Proxy
 }
 
 type Builder interface {
@@ -60,13 +66,15 @@ type Requester interface {
 
 // Send request via FastHttp
 func (fh *FastHttp) DoRequest() (err error) {
-	for i := 0; i < fh.MaxRetries; i++ {
+	for i := 0; i < fh.MaxRetries + 1; i++ {
 		if fh.Proxy.BansQuantity > fh.MaxRetries*10 {
-			err = fmt.Errorf("too many requeststoo many bad requests with this proxy: %v", fh.Proxy.FastFmt)
+			err = fmt.Errorf("too many bad requests with this proxy: %v", fh.Proxy.FastFmt)
 			Logger.Error().Err(err)
 			return err
 		}
-		fh.Client.Dial = fasthttpproxy.FasthttpHTTPDialer(fh.Proxy.FastFmt)
+		if fh.Proxy != nil {
+			fh.Client.Dial = fasthttpproxy.FasthttpHTTPDialer(fh.Proxy.FastFmt)
+		}
 		err = fh.Client.DoTimeout(fh.Request, fh.Response, fh.Timeout)
 		if err != nil {
 			Logger.Warn().Err(err).Str("req_data", fh.Request.String()).Str("proxy", fh.Proxy.FastFmt)
@@ -74,14 +82,13 @@ func (fh *FastHttp) DoRequest() (err error) {
 		}
 		if fh.Response.StatusCode() != fh.ExpectedStatus {
 			fh.Proxy.BansQuantity++
-			Logger.Warn().Err(errors.New("resp status code != expected status code")).Str("req_data", fh.Request.String()).Str("resp_data", fh.Response.String()).Str("proxy", fh.Proxy.FastFmt)
+			Logger.Warn().Err(errIncorrectStatus).Str("req_data", fh.Request.String()).Str("resp_data", fh.Response.String()).Str("proxy", fh.Proxy.FastFmt)
 			continue
 		}
 		return nil
 	}
-	err = errors.New("resp status code != expected status code")
 	// Logger.Error().Err(errors.New("couldn't do request")).Str("req_data", fh.Request.String()).Str("resp_data", fh.Response.String())
-	return err
+	return errIncorrectStatus
 }
 
 // // Send request via net/http
@@ -125,7 +132,7 @@ func (data *FastData) Build() *FastHttp {
 		data.Timeout = 3
 	}
 
-	return &FastHttp{Client: data.Client, Request: req, Response: res, Timeout: time.Duration(data.Timeout) * time.Second}
+	return &FastHttp{Client: data.Client, Request: req, Response: res, Timeout: time.Duration(data.Timeout) * time.Second, ExpectedStatus: data.ExpectedStatus}
 }
 
 // //Build data for net/http

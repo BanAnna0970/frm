@@ -2,9 +2,18 @@ package frm
 
 import (
 	"bufio"
+	"log"
 	"os"
-
 )
+
+func OpenFile(filename string, mode os.FileMode) *os.File {
+	f, err := os.OpenFile(filename, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		log.Println(err)
+	}
+
+	return f
+}
 
 func ReadData(f *os.File) ([]string, error) {
 	scanner := bufio.NewScanner(f)
